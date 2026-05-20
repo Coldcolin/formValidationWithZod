@@ -1,11 +1,16 @@
 import React from "react";
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { deleteAccount, logOut } from "../redux/usersSlice.js";
+import { useNavigate } from "react-router-dom";
 
 const DashBoardRight = () => {
-  const {fromAccount, user} = useContext(AuthContext);
-  const users = useSelector(state => state.users);
+  const {fromAccount} = useContext(AuthContext);
+  const users = useSelector(state => state.users.signedUpUsers);
+  const user = useSelector(state => state.users.loggedInUser);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [theAccountInfo, setTheAccountInfo] = useState(null);
   const [theTransactions, setTheTransactions] = useState([]);
   
@@ -14,7 +19,7 @@ const DashBoardRight = () => {
     const accountInfo = users.find(e => e.id === user?.id) || null;
     const transactions = accountInfo?.transactions || [];
     const account = accountInfo?.accounts?.find(account => account.id === fromAccount?.id);
-    console.log("dashboard right",user);
+    // console.log("dashboard right",user);
     setTheAccountInfo(account);
     setTheTransactions(transactions);
   }, [fromAccount, users, user]);
@@ -36,11 +41,14 @@ const DashBoardRight = () => {
           theTransactions?.map((transaction, index) => (
             <div className="Bank_Content_Wrapper_Right_Bottom_Transaction" key={index}>
               <span>{transaction.type === "debit" ? "Debit:" : "Credit:"}</span>
+              <span>{transaction.memo}</span>
               <span>{transaction.type === "debit" ? "-" : "+"} &#8358; {transaction.amount}</span>
             </div>
           ))
         }
       </div>
+      <button onClick={() => {dispatch(deleteAccount(user?.id)); dispatch(logOut());  navigate("/signup")}}>Delete User</button>
+      <button onClick={() =>   navigate("/add")}>Add Acount</button>
     </div>
   );
 };

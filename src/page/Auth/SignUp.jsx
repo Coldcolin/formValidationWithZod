@@ -12,10 +12,15 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useDispatch } from "react-redux";
+import { signUp } from "../../redux/usersSlice";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const signUpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -41,6 +46,23 @@ const SignUp = () => {
   const submitSignUp = handleSubmit((data) => {
     // Handle form submission, e.g., send data to backend
     console.log("Form Data:", data);
+    const userDetails = {
+      id: Date.now(), // Simple unique ID based on timestamp
+      fullName: data.fullName, 
+      email: data.email,
+      password: data.password,
+      accounts: [
+        {
+          id: 1,
+          accountNumber: `ACC${Math.floor(100000 + Math.random() * 900000)}`, 
+          accountName: "Main Account",
+          balance: 200000,
+        },
+      ],
+      transactions: [],
+    };
+    dispatch(signUp(userDetails));
+    navigate("/");
   });
   // console.log(userDetails);
   return (

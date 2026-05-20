@@ -4,30 +4,22 @@ import "./Login.css";
 import { FaRegEye, FaRegEyeSlash, FaUser, FaLock } from "react-icons/fa";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext.jsx";
-import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { logIn } from "../../redux/usersSlice";
+
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const users = useSelector(state => state.users);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const loginUser = (email, password) => {
-    const user = users.find(user => user.email === email);
-    if(user === undefined) {
-      alert("Invalid credentials");
-      return;
-    }else if(password === user.password) {
-      console.log("login user",user);
-      setUser(user);
-      navigate("/dashboard");
-    } else if(password !== user.password) {
-      alert("Invalid credentials");
-      return;
-    }
+    dispatch(logIn({ email, password }));
+    navigate("/dashboard");
   }
 
   const handleLogin = (e) => {

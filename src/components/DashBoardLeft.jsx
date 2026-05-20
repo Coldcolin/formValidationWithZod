@@ -12,8 +12,9 @@ import { transferFunds } from "../redux/usersSlice";
 import "./css/ButtonStyle.css";
 
 const DashBoardLeft = () => {
-  const { user, fromAccount, setFromAccount } = useContext(AuthContext);
-  const users = useSelector(state => state.users);
+  const { fromAccount, setFromAccount } = useContext(AuthContext);
+  const user = useSelector(state => state.users.loggedInUser);
+  const users = useSelector(state => state.users.signedUpUsers);
   const [recipientInfo, setRecipientInfo] = useState({
     id: 0,
     fullName: "",
@@ -28,17 +29,17 @@ const DashBoardLeft = () => {
   const findUserbyAccountNumber = (accountNumber) => {
     // console.log(accountNumber);
     const user = users.find(user => user.accounts.some(account => account.accountNumber === accountNumber));
-    console.log(user);
+    // console.log(user);
     const accountInfo = user.accounts.find(account => account.accountNumber === accountNumber);
-    console.log({
-      id: user.id,
-      fullName: user.fullName,
-      account: accountInfo.name
-    })
+    // console.log({
+    //   id: user.id,
+    //   fullName: user.fullName,
+    //   account: accountInfo.name
+    // })
     setRecipientInfo({
       id: user.id,
       fullName: user.fullName,
-      account: accountInfo.name
+      account: accountInfo.accountName
     });
   }
 
@@ -56,7 +57,7 @@ const DashBoardLeft = () => {
 
   const getAccountInfo = () => {
     const account = user?.accounts?.find(account => account.id == accountID);
-    console.log("dashboard left",account);
+    // console.log("dashboard left",account);
     setFromAccount(account);
   }
 
@@ -65,10 +66,10 @@ const DashBoardLeft = () => {
   }, [accountID, user]);
 
   useEffect(() => {
-    console.log(recipientAccountNumber.length);
-    if(recipientAccountNumber.length === 10) {
+    // console.log(recipientAccountNumber.length);
+    if(recipientAccountNumber.length === 9) {
       findUserbyAccountNumber(recipientAccountNumber);
-    }else if(recipientAccountNumber.length < 10) {
+    }else if(recipientAccountNumber.length < 9) {
       setRecipientInfo({
         id: 0,
         fullName: "",
@@ -91,7 +92,7 @@ const DashBoardLeft = () => {
         <option value="">Select Account</option>
         {user.accounts.map((item, index) => (
           <option value={item.id} key={index}>
-            {item.name}
+            {item.accountName}
           </option>
         ))}
       </select>

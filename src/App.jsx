@@ -4,6 +4,8 @@ import DashBoard from "./page/Dashboard/DashBoard";
 import Login from "./page/Auth/Login";
 import SignUp from "./page/Auth/SignUp";
 import NotFound from "./components/NotFound";
+import AddAcount from "./page/Dashboard/AddAcount";
+import PrivateRoute from "./page/Auth/PrivateRoute";
 
 const App = () => {
   return (
@@ -12,7 +14,11 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/dashboard" element={<DashBoard />} />
+        <Route element={<PrivateRoute/>}>
+          <Route path="/dashboard" element={<DashBoard />} />
+          <Route path="/add" element={<AddAcount/>}/>
+        </Route>
+        
       </Routes>
     </BrowserRouter>
   );
