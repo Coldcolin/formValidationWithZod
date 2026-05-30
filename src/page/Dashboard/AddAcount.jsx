@@ -3,39 +3,75 @@ import Header from '../../components/Header'
 import {useDispatch, useSelector} from "react-redux";
 import {addNewAccount} from "../../redux/usersSlice";
 import {useNavigate} from "react-router-dom"
+import "./css/AddAccount.css"
+import "../../components/css/ButtonStyle.css"
+import axios from "axios";
+import Swal from 'sweetalert2'
 
 
 const AddAcount = () => {
-    const user = useSelector(state => state.users.loggedInUser);
+    // const user = useSelector(state => state.users.loggedInUser);
+    const accessToken = useSelector(state => state.apiInfo.accessToken);
     const [accountName, setAccountName] = useState("");
     const [amount, setAmmount] = useState(0);
     const dispatch = useDispatch();
     const navigate = useNavigate()
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const [loading, setLoading] = useState(false);
 
-    const addAccount=(e)=>{
+    const addAccount=async(e)=>{
         e.preventDefault();
-        dispatch(addNewAccount({
-            accountName: accountName, 
-            amount: Number(amount)
-        }))
-        navigate("/dashboard")
+        setLoading(true);
+        try{
+            const config = {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            }
+            
+            const response = await axios.post(`${apiUrl}/accounts`, {
+                accountName: accountName,
+                amount: Number(amount)
+            }, config);
+            Swal.fire({
+                icon: "success",
+                title: "Account added successfully",
+                text: response.data.message,
+            });
+            navigate("/dashboard");
+        }catch(error){
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: error.response.data.message,
+            });
+        }finally{
+            setLoading(false);
+        }
+        // navigate("/dashboard")
     }
   return (
     <>
         <Header/>
-        <div style={{width: "100%", height: "80vh", display: "flex", justifyContent: "center", alignItems: "center"}}>
-            <form style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: 10}} onSubmit={addAccount}>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}}>
-                    <label>Account Name</label>
-                    <input placeholder='e.g Savings' value={accountName} onChange={(e)=> setAccountName(e.target.value)} required/>
+        <div className="AddAccount_Page">
+            <div className="AddAccount_Card">
+                <div className="AddAccount_Header">
+                    <h2>Add New Account</h2>
+                    <p>Create an additional account for your profile</p>
                 </div>
-                
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}}>
-                    <label>Amount</label>
-                    <input placeholder='e.g 20000' value={amount} onChange={(e)=> setAmmount(e.target.value)} required />
-                </div>
-                <button type="submit">Add Account</button>
-            </form>
+                <form className="AddAccount_Form" onSubmit={addAccount}>
+                    <div className="AddAccount_Field">
+                        <label htmlFor="accountName">Account Name</label>
+                        <input id="accountName" placeholder="e.g. Savings" value={accountName} onChange={(e)=> setAccountName(e.target.value)} required/>
+                    </div>
+                    
+                    <div className="AddAccount_Field">
+                        <label htmlFor="amount">Initial Amount</label>
+                        <input id="amount" placeholder="e.g. 20000" value={amount} onChange={(e)=> setAmmount(e.target.value)} required />
+                    </div>
+                    <button type="submit" className="Btn Btn--primary" disabled={loading}>{loading ? "Adding..." : "Add Account"}</button>
+                </form>
+            </div>
         </div>
     </>
   )

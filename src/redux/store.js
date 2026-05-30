@@ -12,6 +12,7 @@ import {
 import storage from 'redux-persist/lib/storage'
 import { combineReducers, createStore } from 'redux'
 import usersReducer from "./usersSlice";
+import apiReducer from "./apiSlice";
 
 const persistConfig = {
   key: 'root',
@@ -19,7 +20,8 @@ const persistConfig = {
 }
 
 const rootReducer = combineReducers({
-    users: usersReducer
+    users: usersReducer,
+    apiInfo: apiReducer,
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

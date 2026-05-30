@@ -8,12 +8,13 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   // const accounts = user?.accounts.map(account => account);
   const [fromAccount, setFromAccount] = useState(null);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
-    console.log("context",user);
-  }, [user]);
+    console.log("context",fromAccount);
+  }, [fromAccount]);
  
-  return <AuthContext.Provider value={{ user, setUser, setFromAccount, fromAccount }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, setUser, setFromAccount, fromAccount, refresh, setRefresh }}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

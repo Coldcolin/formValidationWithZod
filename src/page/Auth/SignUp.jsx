@@ -7,20 +7,24 @@ import {
   FaUser,
   FaEnvelope,
   FaLock,
-  FaIdCard,
+  FaSpinner,
 } from "react-icons/fa";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
-import { signUp } from "../../redux/usersSlice";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2'
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const [loading, setLoading] = useState(false);
+
 
   const signUpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -43,26 +47,25 @@ const SignUp = () => {
     resolver: zodResolver(signUpSchema), // Links Zod to the form
   });
 
-  const submitSignUp = handleSubmit((data) => {
-    // Handle form submission, e.g., send data to backend
-    console.log("Form Data:", data);
-    const userDetails = {
-      id: Date.now(), // Simple unique ID based on timestamp
-      fullName: data.fullName, 
-      email: data.email,
-      password: data.password,
-      accounts: [
-        {
-          id: 1,
-          accountNumber: `ACC${Math.floor(100000 + Math.random() * 900000)}`, 
-          accountName: "Main Account",
-          balance: 200000,
-        },
-      ],
-      transactions: [],
-    };
-    dispatch(signUp(userDetails));
-    navigate("/");
+  const submitSignUp = handleSubmit(async (data) => {
+    try{
+      setLoading(true);
+      const response = await axios.post(`${apiUrl}/auth/signup`, data);
+      Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Account created successfully",
+      showConfirmButton: false,
+      timer: 1500
+    });
+      navigate("/");
+    }catch(error){
+      alert(error.message);
+    }finally{
+      setLoading(false);
+    }
+  
+    
   });
   // console.log(userDetails);
   return (
@@ -85,7 +88,7 @@ const SignUp = () => {
                 placeholder="Enter your full name"
                 {...register("fullName")} // Connects input to react-hook-form
               />
-              {errors.fullName && <span>{errors.fullName.message}</span>}
+              {errors.fullName && <span className="error_text">{errors.fullName.message}</span>}
             </div>
           </div>
 
@@ -100,7 +103,7 @@ const SignUp = () => {
                 placeholder="Enter your email"
                 {...register("email")} // Connects input to react-hook-form
               />
-              {errors.email && <span>{errors.email.message}</span>}
+              {errors.email && <span className="error_text">{errors.email.message}</span>}
             </div>
           </div>
 
@@ -137,7 +140,7 @@ const SignUp = () => {
                 {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
               </button>
             </div>
-             {errors.password && <span style={{color: "red"}}>{errors.password.message}</span>}
+             {errors.password && <span className="error_text">{errors.password.message}</span>}
           </div>
 
           {/* Confirm Password Input */}
@@ -161,7 +164,7 @@ const SignUp = () => {
               </button>
 
             </div>
-            {errors.confirmPassword && <span>{errors.confirmPassword.message}</span>}
+            {errors.confirmPassword && <span className="error_text">{errors.confirmPassword.message}</span>}
           </div>
 
           {/* Terms & Conditions */}
@@ -178,8 +181,8 @@ const SignUp = () => {
           </div>
 
           {/* Signup Button */}
-          <button type="submit" className="login_btn">
-            Sign Up
+          <button type="submit" className="login_btn" disabled={loading}>
+            {loading ? <FaSpinner className="spinner" /> : "Sign Up"}
           </button>
         </form>
 

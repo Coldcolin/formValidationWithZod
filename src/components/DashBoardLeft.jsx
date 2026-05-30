@@ -10,49 +10,77 @@ import { useSelector } from "react-redux";
 import {useDispatch} from "react-redux";
 import { transferFunds } from "../redux/usersSlice";
 import "./css/ButtonStyle.css";
+import axios from "axios";
+import Swal from 'sweetalert2'
 
 const DashBoardLeft = () => {
-  const { fromAccount, setFromAccount } = useContext(AuthContext);
-  const user = useSelector(state => state.users.loggedInUser);
+  const { fromAccount, setFromAccount, setRefresh } = useContext(AuthContext);
+  const user = useSelector(state => state.apiInfo.user);
+  const accessToken = useSelector(state => state.apiInfo.accessToken);
   const users = useSelector(state => state.users.signedUpUsers);
   const [recipientInfo, setRecipientInfo] = useState({
     id: 0,
     fullName: "",
-    account: ""
+    accountName: ""
   });
   const [recipientAccountNumber, setRecipientAccountNumber] = useState("");
   const [amount, setAmount] = useState(0);
   const [memo, setMemo] = useState("");
   const [accountID, setAccountID] = useState("");
   const dispatch = useDispatch();
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const [loading, setLoading] = useState(false);
 
-  const findUserbyAccountNumber = (accountNumber) => {
-    // console.log(accountNumber);
-    const user = users.find(user => user.accounts.some(account => account.accountNumber === accountNumber));
-    // console.log(user);
-    const accountInfo = user.accounts.find(account => account.accountNumber === accountNumber);
-    // console.log({
-    //   id: user.id,
-    //   fullName: user.fullName,
-    //   account: accountInfo.name
-    // })
-    setRecipientInfo({
-      id: user.id,
-      fullName: user.fullName,
-      account: accountInfo.accountName
-    });
-  }
+  // const findUserbyAccountNumber = (accountNumber) => {
+  //   // console.log(accountNumber);
+  //   const user = users.find(user => user.accounts.some(account => account.accountNumber === accountNumber));
+  //   // console.log(user);
+  //   const accountInfo = user.accounts.find(account => account.accountNumber === accountNumber);
+  //   // console.log({
+  //   //   id: user.id,
+  //   //   fullName: user.fullName,
+  //   //   account: accountInfo.name
+  //   // })
+  //   setRecipientInfo({
+  //     id: user.id,
+  //     fullName: user.fullName,
+  //     account: accountInfo.accountName
+  //   });
+  // }
 
-  const handleSendFunds = (e) => {
+  const handleSendFunds = async(e) => {
     e.preventDefault();
-    dispatch(transferFunds({
-      userID: user.id,
-      senderAccountID: fromAccount.id,
+    setLoading(true);
+   try{
+    const config = {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`
+      }
+    }
+    const response = await axios.post(`${apiUrl}/transfers`, {
+      recipientUserId: recipientInfo.userId,
+      senderAccountId: fromAccount.id,
       recipientAccountNumber: recipientAccountNumber,
-      reciepientID: recipientInfo.id,
       amount: Number(amount),
       memo: memo,
-    }));
+    }, config);
+    setRefresh(true);
+    Swal.fire({
+      icon: "success",
+      title: "Funds transferred successfully",
+      text: response.data.message,
+    });
+    
+   }catch(error){
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error.response.data.message,
+    });
+   }
+   finally{
+    setLoading(false);
+   }
   }
 
   const getAccountInfo = () => {
@@ -65,17 +93,34 @@ const DashBoardLeft = () => {
     getAccountInfo();
   }, [accountID, user]);
 
+  const fectRecipientInfo = async () => {
+    try{
+      const config = {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`
+        }
+      }
+      if(recipientAccountNumber.length === 9) {
+        // findUserbyAccountNumber(recipientAccountNumber);
+        const response = await axios.get(`${apiUrl}/accounts/lookup/${recipientAccountNumber}`, config);
+        setRecipientInfo(response.data);
+      }else if(recipientAccountNumber.length < 9) {
+        setRecipientInfo({
+          id: 0,
+          fullName: "",
+          accountName: ""
+        });
+      }
+      
+      // console.log("response",response.data);
+    }catch(error){
+      console.log("error",error);
+    }
+  }
+
   useEffect(() => {
     // console.log(recipientAccountNumber.length);
-    if(recipientAccountNumber.length === 9) {
-      findUserbyAccountNumber(recipientAccountNumber);
-    }else if(recipientAccountNumber.length < 9) {
-      setRecipientInfo({
-        id: 0,
-        fullName: "",
-        account: ""
-      });
-    }
+    fectRecipientInfo();
   }, [recipientAccountNumber]);
   
   // const accounts = .map(account => account);
@@ -122,7 +167,7 @@ const DashBoardLeft = () => {
       <input
         type={"text"}
         placeholder={"Bank Name"}
-        value={recipientInfo?.account}
+        value={recipientInfo?.accountName}
       />
       </div>
        
@@ -144,7 +189,7 @@ const DashBoardLeft = () => {
       />
       </div>
 
-        <button type="submit" className="Btn Form_Btn">Send Fund</button>
+        <button type="submit" className="Btn Btn--primary Form_Btn" disabled={loading}>{loading ? "Sending..." : "Send Fund"}</button>
       </form>
     </div>
   );

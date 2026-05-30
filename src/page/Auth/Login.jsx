@@ -1,30 +1,60 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Login.css";
-import { FaRegEye, FaRegEyeSlash, FaUser, FaLock } from "react-icons/fa";
-import { useContext } from "react";
-import { AuthContext } from "../../context/AuthContext.jsx";
+import { FaRegEye, FaRegEyeSlash, FaUser, FaLock, FaSpinner } from "react-icons/fa";
+// import { useContext } from "react";
+// import { AuthContext } from "../../context/AuthContext.jsx";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logIn } from "../../redux/usersSlice";
+import { setAccessToken, setRefreshToken, setUser } from "../../redux/apiSlice";
+import axios from "axios";
+import Swal from 'sweetalert2'
+
 
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { setUser } = useContext(AuthContext);
+  // const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const [loading, setLoading] = useState(false);
 
-  const loginUser = (email, password) => {
-    dispatch(logIn({ email, password }));
-    navigate("/dashboard");
-  }
+  // const loginUser = (email, password) => {
+  //   dispatch(logIn({ email, password }));
+  //   navigate("/dashboard");
+  // }
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    loginUser(email, password);
+    try{
+      setLoading(true);
+      const response = await axios.post(`${apiUrl}/auth/login`, { email, password });
+      Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Login successful",
+      showConfirmButton: false,
+      timer: 1500
+    });
+    const responsData = response.data;
+    console.log("responsData",responsData.user);
+    dispatch(setAccessToken(responsData?.accessToken));
+    dispatch(setRefreshToken(responsData?.refreshToken));
+    dispatch(setUser(responsData?.user));
+    
+      navigate("/dashboard");
+    }catch(error){
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.response.data.message,
+      });
+    }finally{
+      setLoading(false);
+    }
   }
 
   return (
@@ -80,8 +110,8 @@ const LoginPage = () => {
           </div>
 
           {/* Login Button */}
-          <button type="submit" className="login_btn">
-            Login
+          <button type="submit" className="login_btn" disabled={loading}>
+            {loading ? <FaSpinner className="spinner" /> : "Login"}
           </button>
         </form>
 

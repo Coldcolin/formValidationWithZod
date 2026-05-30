@@ -1,5 +1,5 @@
 {
-  "name": "chatapp",
+  "name": "tcabankapp",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.10",
     "antd": "^5.26.0",
-    "axios": "^1.9.0",
+    "axios": "^1.16.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.75.0",
@@ -24,6 +24,7 @@
     "react-toastify": "^11.0.5",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
+    "sweetalert2": "^11.26.25",
     "tailwindcss": "^4.1.10",
     "zod": "^4.4.3"
   },
